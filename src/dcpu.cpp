@@ -28,8 +28,6 @@ void DCPU16::tick(unsigned int n)
 template<char tag>
 uint16& DCPU16::value(uint16 v, bool skipping)
 {
-    // When skipping=true, the return value is insignificant; it only matters
-    // whether PC is incremented the right amount, and that there are no side effects.
     static uint16 tmp;
 
     if(v == 0x18 && !skipping) return mem[tag == 'a' ? reg[SP]++ : --reg[SP]];
@@ -37,40 +35,11 @@ uint16& DCPU16::value(uint16 v, bool skipping)
     if(v >= 0x20) return tmp = v-0x21;   // 20..3F, read-only immediate
     const auto specs = reg_specs[v];
     uint16* val = nullptr; tmp = 0;
-    if((specs & 0xFu) != noreg) tmp = *(val = &reg[specs & 0xFu]);
-    if(specs & imm) { tick(); val = &(tmp += mem[reg[PC]++]); }
-    if(specs & 0x80) return mem[tmp];
+    if((specs & 0xFu) != NOREG) tmp = *(val = &reg[specs & 0xFu]);
+    if(specs & IMM) { tick(); val = &(tmp += mem[reg[PC]++]); }
+    if(specs & MEM) return mem[tmp];
     return *val;
-
-    // Literals are actually read-only. Because the instruction _may_
-    // write into the target operand even if it is a literal, the
-    // literals will be first stored into a temporary variable (tmp),
-    // which can then be harmlessly overwritten.
 }
-
-/*template<char tag>
-uint16& DCPU16::value(uint16 val, bool skipping)
-{
-	static uint16 tmp;
-
-	switch(val)
-	{
-		case 0x00 ... 0x07: return reg[val]; break;
-		case 0x08 ... 0x0f: return mem[reg[val & 0x0f]]; break;
-		case 0x10 ... 0x17: tick(1); return mem[reg[val & 0x0f] + mem[reg[PC]++]]; break;
-		case 0x18: if(!skipping) { return mem[(tag == 'b' ? --reg[SP] : reg[SP]++)]; } break;
-		case 0x19: return mem[reg[SP]]; break;
-		case 0x1a: tick(1); return mem[reg[SP] + mem[reg[PC]++]]; break;
-		case 0x1b: return reg[SP]; break;
-		case 0x1c: return reg[PC]; break;
-		case 0x1d: return reg[EX]; break; 
-		case 0x1e: tick(1); return mem[mem[reg[PC]++]]; break;
-		case 0x1f: tick(1); return mem[reg[PC]++]; break;
-		case 0x20 ... 0x3f: tmp = val - 0x21; break;
-	}
-
-	return tmp;
-}*/
 
 void DCPU16::interrupt(uint16 num, bool fromHardware)
 {
@@ -153,7 +122,6 @@ void DCPU16::execute(bool skipping)
     uint32 t;
     sint32 s;
 
-    // Bisqwit's code
     uint32 wb = b;
 
     if(skipping)
@@ -212,7 +180,6 @@ void DCPU16::execute(bool skipping)
             case INSTR::STI: tick(2); b = a; reg[I]++; reg[J]++; break;
             case INSTR::STD: tick(2); b = a; reg[I]--; reg[J]--; break;
 			default: std::fprintf(stderr, "Invalid opcode %04X at PC=%X\n", op, reg[PC]); break;
-
 		}
 	}
 }

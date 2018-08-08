@@ -17,13 +17,7 @@ static std::unordered_multimap<uint32, std::string> SymbolLookup;
 
 static const bool DisassemblyListing = false;
 
-//enum reg_index { noreg=0xF, mem=0x80, imm=0x40 };
 static const char regnames[][5] = {"A","B","C","X","Y","Z","I","J","PC","SP","EX","IA"};
-/*static const uint8 reg_specs[0x20] =
-    {A        ,B        ,C        ,X        ,Y        ,Z        ,I        ,J, // regs
-     A    |mem,B    |mem,C    |mem,X    |mem,Y    |mem,Z    |mem,I    |mem,J    |mem,
-     A|imm|mem,B|imm|mem,C|imm|mem,X|imm|mem,Y|imm|mem,Z|imm|mem,I|imm|mem,J|imm|mem,
-     SP,       SP|mem, SP|imm|mem, SP, PC, EX, noreg|imm|mem, noreg|imm};*/
 
 static std::string Disassemble(unsigned pc, const uint16* memory)
 {
@@ -36,13 +30,13 @@ static std::string Disassemble(unsigned pc, const uint16* memory)
         char Buf[32], sep[4] = "\0+ ";
         if(v == 0x18) return result + (which=='b' ? "PUSH" : "POP");
         if(v >= 0x20) { std::sprintf(Buf, " 0x%X", uint16(int(v)-0x21)); return Buf; }
-        if(reg_specs[v] & mem) result += '[';
-        if((reg_specs[v] & 0xFu)!=noreg) { result += regnames[(reg_specs[v] & 0xFu)]; sep[0] = ' '; }
-        if(reg_specs[v] & imm) { sprintf(Buf, "%s0x%X", sep, memory[pc++]); result += Buf; }
-        if(reg_specs[v] & imm)
+        if(reg_specs[v] & MEM) result += '[';
+        if((reg_specs[v] & 0xFu)!=NOREG) { result += regnames[(reg_specs[v] & 0xFu)]; sep[0] = ' '; }
+        if(reg_specs[v] & IMM) { sprintf(Buf, "%s0x%X", sep, memory[pc++]); result += Buf; }
+        if(reg_specs[v] & IMM)
             for(auto i = SymbolLookup.equal_range(memory[pc-1]); i.first != i.second; ++i.first)
                 result += "=" + i.first->second;
-        if(reg_specs[v] & mem) result += ']';
+        if(reg_specs[v] & MEM) result += ']';
         return result;
     };
     for(auto i = SymbolLookup.equal_range(pc-1); i.first != i.second; ++i.first)
@@ -451,7 +445,7 @@ public:
         //   Operands:
         operands.insert( { {"POP",0x18},{"PUSH",0x18},{"PEEK",0x19},{"PICK",0x1A},{"O",0x1D} } );
         for(unsigned a=0; a<0x20; ++a)
-            if(reg_specs[a] < noreg)
+            if(reg_specs[a] < NOREG)
                 operands[regnames[reg_specs[a]]] = a;
 
         parse_code(file_contents);
