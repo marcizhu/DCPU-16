@@ -22,7 +22,7 @@ private:
 	uint16 paletteBase = 0;
 	uint16 borderColor = 0;
 	uint8 blink = 0;
-    uint16 delay;
+	uint16 delay;
 
 	void render(bool blink);
 
@@ -31,10 +31,10 @@ private:
 
 public:
 	LEM1802(DCPU16* c, uint16 delay);
-    ~LEM1802() override;
+	~LEM1802() override;
 
-    int keepAlive();
+	int keepAlive();
 
-    void interrupt() override;
-    void tick() override;
+	void interrupt() override;
+	void tick() override;
 };

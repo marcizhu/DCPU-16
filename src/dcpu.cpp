@@ -16,48 +16,48 @@ DCPU16::DCPU16(std::vector<uint16> prog)
 
 void DCPU16::tick(unsigned int n)
 {
-    while(n-- > 0)
-    {
-    	for(const auto& p : hardware)
-    	{
-    		p->tick();
-    	}
-    }
+	while(n-- > 0)
+	{
+		for(const auto& p : hardware)
+		{
+			p->tick();
+		}
+	}
 }
 
 template<char tag>
 uint16& DCPU16::value(uint16 v, bool skipping)
 {
-    static uint16 tmp;
+	static uint16 tmp;
 
-    if(v == 0x18 && !skipping) return mem[tag == 'a' ? reg[SP]++ : --reg[SP]];
+	if(v == 0x18 && !skipping) return mem[tag == 'a' ? reg[SP]++ : --reg[SP]];
 
-    if(v >= 0x20) return tmp = v-0x21;   // 20..3F, read-only immediate
-    const auto specs = reg_specs[v];
-    uint16* val = nullptr; tmp = 0;
-    if((specs & 0xFu) != NOREG) tmp = *(val = &reg[specs & 0xFu]);
-    if(specs & IMM) { tick(); val = &(tmp += mem[reg[PC]++]); }
-    if(specs & MEM) return mem[tmp];
-    return *val;
+	if(v >= 0x20) return tmp = v-0x21;   // 20..3F, read-only immediate
+	const auto specs = reg_specs[v];
+	uint16* val = nullptr; tmp = 0;
+	if((specs & 0xFu) != NOREG) tmp = *(val = &reg[specs & 0xFu]);
+	if(specs & IMM) { tick(); val = &(tmp += mem[reg[PC]++]); }
+	if(specs & MEM) return mem[tmp];
+	return *val;
 }
 
 void DCPU16::interrupt(uint16 num, bool fromHardware)
 {
 	if(!reg[IA]) return; // Interrupts disabled
 
-    if(irqQueuing || fromHardware)
-    {
-        irqQueue[irqHead++] = num;
-        if(irqHead == irqTail ) { /* Queue overflow! TODO: Execute HCF instruction */ }
-    }
-    else
-    {
-        PUSH = reg[PC];
-        reg[PC] = reg[IA];
-        PUSH = reg[A]; // MOVED  --  Move DOWN by 1 if issues!!!
-        reg[A] = num;
-        irqQueuing = true;
-    }
+	if(irqQueuing || fromHardware)
+	{
+		irqQueue[irqHead++] = num;
+		if(irqHead == irqTail ) { /* Queue overflow! TODO: Execute HCF instruction */ }
+	}
+	else
+	{
+		PUSH = reg[PC];
+		reg[PC] = reg[IA];
+		PUSH = reg[A]; // MOVED  --  Move DOWN by 1 if issues!!!
+		reg[A] = num;
+		irqQueuing = true;
+	}
 }
 
 void DCPU16::run()
@@ -65,10 +65,10 @@ void DCPU16::run()
 	while(this->running == true)
 	{
 		if(!irqQueuing && irqHead != irqTail)
-        {
-             uint16 intno = irqQueue[irqTail++];
-             this->interrupt(intno);
-        }
+		{
+			 uint16 intno = irqQueue[irqTail++];
+			 this->interrupt(intno);
+		}
 
 		execute();
 	}
@@ -116,24 +116,24 @@ void DCPU16::execute(bool skipping)
 	uint16& a = value<'a'>(aa, skipping);
 	uint16& b = (op == INSTR::NBI ? op : value<'b'>(bb, skipping));
 
-    sint32 sa = (sint16)a;
-    sint32 sb = (sint16)b;
+	sint32 sa = (sint16)a;
+	sint32 sb = (sint16)b;
 
-    uint32 t;
-    sint32 s;
+	uint32 t;
+	sint32 s;
 
-    uint32 wb = b;
+	uint32 wb = b;
 
-    if(skipping)
-    {
-    	if(op >= INSTR::IFB && op <= INSTR::IFU)
+	if(skipping)
+	{
+		if(op >= INSTR::IFB && op <= INSTR::IFU)
 		{
 			tick(1);
 			execute(true);
 		}
-    }
-    else
-    {
+	}
+	else
+	{
 		switch(op)
 		{
 			case INSTR::NBI:
@@ -162,23 +162,23 @@ void DCPU16::execute(bool skipping)
 			case INSTR::MOD: tick(3); b = ( a ?  b %  a : 0); break;
 			case INSTR::MDI: tick(3); b = (sa ? sb % sa : 0); break;
 			case INSTR::AND: tick(1); b &= a; break;
-            case INSTR::BOR: tick(1); b |= a; break;
-            case INSTR::XOR: tick(1); b ^= a; break;
-            case INSTR::SHR: tick(1); t = (wb << 16) >> a; b = t >> 16; reg[EX] = t; break;
-            case INSTR::ASR: tick(1); s = (sb << 16) >> a; b = s >> 16; reg[EX] = s; break;
-            case INSTR::SHL: tick(1); t = wb << a; b = t; reg[EX] = t >> 16; break;
-            case INSTR::IFB: tick(2); if(!( b &  a)) execute(true); break;
-            case INSTR::IFC: tick(2); if(   b &  a ) execute(true); break;
-            case INSTR::IFE: tick(2); if(!( b == a)) execute(true); break;
-            case INSTR::IFN: tick(2); if(!( b != a)) execute(true); break;
-            case INSTR::IFG: tick(2); if(!( b >  a)) execute(true); break;
-            case INSTR::IFA: tick(2); if(!(sb > sa)) execute(true); break;
-            case INSTR::IFL: tick(2); if(!( b <  a)) execute(true); break;
-            case INSTR::IFU: tick(2); if(!(sb < sa)) execute(true); break;
-            case INSTR::ADX: tick(3); t = b + a + reg[EX]; b = t; reg[EX] = (t >> 16) != 0 ? 0x0001 : 0x0000; break;
-            case INSTR::SBX: tick(3); t = b - a + reg[EX]; b = t; reg[EX] = (t >> 16); break; // EX should be 0xFFFF only if underflow!
-            case INSTR::STI: tick(2); b = a; reg[I]++; reg[J]++; break;
-            case INSTR::STD: tick(2); b = a; reg[I]--; reg[J]--; break;
+			case INSTR::BOR: tick(1); b |= a; break;
+			case INSTR::XOR: tick(1); b ^= a; break;
+			case INSTR::SHR: tick(1); t = (wb << 16) >> a; b = t >> 16; reg[EX] = t; break;
+			case INSTR::ASR: tick(1); s = (sb << 16) >> a; b = s >> 16; reg[EX] = s; break;
+			case INSTR::SHL: tick(1); t = wb << a; b = t; reg[EX] = t >> 16; break;
+			case INSTR::IFB: tick(2); if(!( b &  a)) execute(true); break;
+			case INSTR::IFC: tick(2); if(   b &  a ) execute(true); break;
+			case INSTR::IFE: tick(2); if(!( b == a)) execute(true); break;
+			case INSTR::IFN: tick(2); if(!( b != a)) execute(true); break;
+			case INSTR::IFG: tick(2); if(!( b >  a)) execute(true); break;
+			case INSTR::IFA: tick(2); if(!(sb > sa)) execute(true); break;
+			case INSTR::IFL: tick(2); if(!( b <  a)) execute(true); break;
+			case INSTR::IFU: tick(2); if(!(sb < sa)) execute(true); break;
+			case INSTR::ADX: tick(3); t = b + a + reg[EX]; b = t; reg[EX] = (t >> 16) != 0 ? 0x0001 : 0x0000; break;
+			case INSTR::SBX: tick(3); t = b - a + reg[EX]; b = t; reg[EX] = (t >> 16); break; // EX should be 0xFFFF only if underflow!
+			case INSTR::STI: tick(2); b = a; reg[I]++; reg[J]++; break;
+			case INSTR::STD: tick(2); b = a; reg[I]--; reg[J]--; break;
 			default: std::fprintf(stderr, "Invalid opcode %04X at PC=%X\n", op, reg[PC]); break;
 		}
 	}
