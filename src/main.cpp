@@ -7,6 +7,7 @@
 #include "hardware.h"
 #include "lem1802.h"
 #include "keyboard.h"
+#include "clock.h"
 
 int main(int argc, char* argv[])
 {
@@ -29,8 +30,12 @@ int main(int argc, char* argv[])
 
 		DCPU16* cpu = new DCPU16(mem);
 		LEM1802* lem = new LEM1802(cpu, atoi(argv[2]));
+		Keyboard* kb = new Keyboard(cpu);
+		Clock* clock = new Clock(cpu);
 
 		cpu->installHardware(lem);
+		cpu->installHardware(kb);
+		cpu->installHardware(clock);
 		cpu->run();
 
 		//while(!lem->keepAlive());

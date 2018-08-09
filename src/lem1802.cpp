@@ -3,7 +3,7 @@
 
 LEM1802::LEM1802(DCPU16* c, uint16 delay) : Hardware(c, 0x7349f615, 0x1802, 0x1c6c8b36), delay(delay)
 {
-	pixels.resize(SCREEN_WIDTH * SCREEN_HEIGHT * SCALE, 0);
+	pixels.resize(SCREEN_WIDTH * SCREEN_HEIGHT * 4, 0);
 	this->counter = 0;
 
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -111,17 +111,6 @@ void LEM1802::render(bool blink)
 					pixels[offset + 3] = SDL_ALPHA_OPAQUE;    // a
 				}
 			}
-		}
-	}
-
-	SDL_Event event;
-
-	while(SDL_PollEvent(&event))
-	{
-		if(SDL_QUIT == event.type)
-		{
-			cpu->halt();
-			break;
 		}
 	}
 

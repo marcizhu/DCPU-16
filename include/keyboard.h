@@ -61,6 +61,12 @@ public:
 					if(code && event.type == SDL_KEYDOWN) buffer[bufhead++] = code;
 					if(irq) cpu->interrupt(irq, true);
 				}
+
+				if(SDL_QUIT == event.type)
+				{
+					cpu->halt();
+					break;
+				}
 			}
 		}
 	}

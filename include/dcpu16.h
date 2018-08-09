@@ -47,6 +47,7 @@ private:
 	friend class Hardware;
 	friend class LEM1802;
 	friend class Keyboard;
+	friend class Clock;
 
 public:
 	DCPU16(std::vector<uint16> prog);
