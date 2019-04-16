@@ -1,15 +1,17 @@
 #pragma once
 
+#include "hardware.h"
+
 class Keyboard : public Hardware
 {
 private:
-	uint8 buffer[0x100];
-	uint8 state[0x100];
-	uint8 bufhead = 0, buftail = 0;
+	uint8_t buffer[0x100];
+	uint8_t state[0x100];
+	uint8_t bufhead = 0, buftail = 0;
 	unsigned int counter = 0; // tick counter
 
 	// Translate SDL key symbol into DCPU key code.
-	static uint8 translate(const SDL_Keysym& key)
+	static uint8_t translate(const SDL_Keysym& key)
 	{
 		switch(key.sym)
 		{
@@ -55,7 +57,7 @@ public:
 			{
 				if(event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
 				{
-					uint8 code = translate(event.key.keysym);
+					uint8_t code = translate(event.key.keysym);
 
 					state[code] = event.type == SDL_KEYDOWN;
 					if(code && event.type == SDL_KEYDOWN) buffer[bufhead++] = code;

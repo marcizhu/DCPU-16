@@ -1,12 +1,16 @@
 #pragma once
 
+#include <cstdint>
+
+#include "dcpu16.h"
+
 class Hardware
 {
 protected:
 	DCPU16* cpu;
-	uint32 id, version, manufacturer, irq;
+	uint32_t id, version, manufacturer, irq;
 
-	Hardware(DCPU16* c, uint32 id, uint32 ver, uint32 man) : cpu(c), id(id), version(ver), manufacturer(man), irq(0) { }
+	Hardware(DCPU16* c, uint32_t id, uint32_t ver, uint32_t man) : cpu(c), id(id), version(ver), manufacturer(man), irq(0) { }
 
 public:
 	virtual ~Hardware() { }

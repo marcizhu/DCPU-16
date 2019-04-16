@@ -1,11 +1,12 @@
 #include "dcpu16.h"
+#include "hardware.h"
 
 #define PUSH DCPU16::value<'b'>(0x18, false)
 #define POP  DCPU16::value<'a'>(0x18, false)
 
-DCPU16::DCPU16(std::vector<uint16> prog)
+DCPU16::DCPU16(std::vector<uint16_t> prog)
 {
-	mem = new uint16[0x10000];
+	mem = new uint16_t[0x10000];
 	memset(mem, 0, 0x10000);
 
 	for(unsigned int i = 0; i < prog.size(); i++)
@@ -26,22 +27,22 @@ void DCPU16::tick(unsigned int n)
 }
 
 template<char tag>
-uint16& DCPU16::value(uint16 v, bool skipping)
+uint16_t& DCPU16::value(uint16_t v, bool skipping)
 {
-	static uint16 tmp;
+	static uint16_t tmp;
 
 	if(v == 0x18 && !skipping) return mem[tag == 'a' ? reg[SP]++ : --reg[SP]];
 
 	if(v >= 0x20) return tmp = v-0x21;   // 20..3F, read-only immediate
 	const auto specs = reg_specs[v];
-	uint16* val = nullptr; tmp = 0;
+	uint16_t* val = nullptr; tmp = 0;
 	if((specs & 0xFu) != NOREG) tmp = *(val = &reg[specs & 0xFu]);
 	if(specs & IMM) { tick(); val = &(tmp += mem[reg[PC]++]); }
 	if(specs & MEM) return mem[tmp];
 	return *val;
 }
 
-void DCPU16::interrupt(uint16 num, bool fromHardware)
+void DCPU16::interrupt(uint16_t num, bool fromHardware)
 {
 	if(!reg[IA]) return; // Interrupts disabled
 
@@ -66,7 +67,7 @@ void DCPU16::run()
 	{
 		if(!irqQueuing && irqHead != irqTail)
 		{
-			 uint16 intno = irqQueue[irqTail++];
+			 uint16_t intno = irqQueue[irqTail++];
 			 this->interrupt(intno);
 		}
 
@@ -107,22 +108,22 @@ void DCPU16::dump()
 
 void DCPU16::execute(bool skipping)
 {
-	uint16 inst = mem[reg[PC]++]; // read instruction and point to the next one
+	uint16_t inst = mem[reg[PC]++]; // read instruction and point to the next one
 
-	uint16 aa = (inst >> 10) & 0x3f;
-	uint16 bb = (inst >>  5) & 0x1f;
-	uint16 op = (inst >>  0) & 0x1f;
+	uint16_t aa = (inst >> 10) & 0x3f;
+	uint16_t bb = (inst >>  5) & 0x1f;
+	uint16_t op = (inst >>  0) & 0x1f;
 
-	uint16& a = value<'a'>(aa, skipping);
-	uint16& b = (op == INSTR::NBI ? op : value<'b'>(bb, skipping));
+	uint16_t& a = value<'a'>(aa, skipping);
+	uint16_t& b = (op == INSTR::NBI ? op : value<'b'>(bb, skipping));
 
 	sint32 sa = (sint16)a;
 	sint32 sb = (sint16)b;
 
-	uint32 t;
+	uint32_t t;
 	sint32 s;
 
-	uint32 wb = b;
+	uint32_t wb = b;
 
 	if(skipping)
 	{

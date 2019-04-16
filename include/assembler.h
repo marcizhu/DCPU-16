@@ -13,13 +13,13 @@ static const char ins_set[4*16*3+1] =
 	"IFBIFCIFEIFNIFGIFAIFLIFU......ADXSBX......STISTD";
 
 /* Disassemble() produces textual disassembly of single DCPU instruction at memory[pc] */
-static std::unordered_multimap<uint32, std::string> SymbolLookup;
+static std::unordered_multimap<uint32_t, std::string> SymbolLookup;
 
 static const bool DisassemblyListing = false;
 
 static const char regnames[][5] = {"A","B","C","X","Y","Z","I","J","PC","SP","EX","IA"};
 
-static std::string Disassemble(unsigned pc, const uint16* memory)
+static std::string Disassemble(unsigned pc, const uint16_t* memory)
 {
 	unsigned v = memory[pc++], o = (v & 0x1F), bb = (v>>5) & 0x1F, aa = (v>>10) & 0x3F;
 
@@ -29,7 +29,7 @@ static std::string Disassemble(unsigned pc, const uint16* memory)
 		std::string result(" ");
 		char Buf[32], sep[4] = "\0+ ";
 		if(v == 0x18) return result + (which=='b' ? "PUSH" : "POP");
-		if(v >= 0x20) { std::sprintf(Buf, " 0x%X", uint16(int(v)-0x21)); return Buf; }
+		if(v >= 0x20) { std::sprintf(Buf, " 0x%X", uint16_t(int(v)-0x21)); return Buf; }
 		if(reg_specs[v] & MEM) result += '[';
 		if((reg_specs[v] & 0xFu)!=NOREG) { result += regnames[(reg_specs[v] & 0xFu)]; sep[0] = ' '; }
 		if(reg_specs[v] & IMM) { sprintf(Buf, "%s0x%X", sep, memory[pc++]); result += Buf; }
@@ -49,13 +49,13 @@ static std::string Disassemble(unsigned pc, const uint16* memory)
 
 class Assembler
 {
-	std::vector<uint16> memory;
+	std::vector<uint16_t> memory;
 	// Expression is a list of multiplicative terms. Each is a constant + list of summed symbols.
 	typedef std::vector<std::pair<long, std::vector<std::pair<bool, std::string>>>> expression;
 	// List of forward declarations, which can be patched later.
-	std::vector<std::pair<uint16, expression>> forward_declarations;
+	std::vector<std::pair<uint16_t, expression>> forward_declarations;
 	// pclist is used for side-by-side disassembly & source code listing.
-	std::vector<std::pair<uint32, std::string>> pclist;
+	std::vector<std::pair<uint32_t, std::string>> pclist;
 	// Remember known labels (name -> address).
 	std::unordered_map<std::string, sint32> symbols;
 	std::unordered_map<std::string, std::string> defines; // name->content
@@ -65,12 +65,12 @@ class Assembler
 	std::pair<std::string,std::vector<std::string>> macro_call;
 
 	/* Define all reserved words */
-	std::unordered_map<std::string, uint16> bops, operands;
+	std::unordered_map<std::string, uint16_t> bops, operands;
 
 	struct operand_type
 	{
 		bool set = false, brackets = false;
-		uint16 addr = 0, shift = 0;
+		uint16_t addr = 0, shift = 0;
 		expression terms;
 		std::string string;
 
@@ -80,9 +80,9 @@ class Assembler
 	bool comment = false, label = false, sign = false, dat = false, string = false;
 	std::string id, in_meta, recording_define, define_contents, recording_macro;
 	unsigned fill_count = 1;
-	uint16 pc=0;
+	uint16_t pc=0;
 
-	std::pair<uint16,int> simplify_expression(expression& expr, bool require_known = false)
+	std::pair<uint16_t,int> simplify_expression(expression& expr, bool require_known = false)
 	{
 		// For each identifier in the term that is not a register, add it to the sum
 		int register_number = -1;
@@ -164,7 +164,7 @@ class Assembler
 			std::string s; s.swap(op.string);
 			for(char c: s)
 			{
-				op.terms = {{}}; op.terms[0].first = (uint8)c;
+				op.terms = {{}}; op.terms[0].first = (uint8_t)c;
 				op.set   = true;
 				encode_operand(op);
 			}
@@ -178,7 +178,7 @@ class Assembler
 
 			// Calculate the identifiers.
 			auto r = simplify_expression(op.terms);
-			uint16 value          = r.first;
+			uint16_t value          = r.first;
 			int register_index = r.second;
 			bool resolved      = op.terms.empty();
 			if(!resolved) forward_declarations.emplace_back( pc, std::move(op.terms) );
@@ -187,7 +187,7 @@ class Assembler
 			bool has_register    = register_index >= 0;
 			bool has_brackets    = op.brackets;
 			bool has_offset      = !resolved || value || !has_register;
-			bool offset_is_small = resolved && uint16(value+1) <= 0x1F && op.shift == 10;
+			bool offset_is_small = resolved && uint16_t(value+1) <= 0x1F && op.shift == 10;
 
 			// Sanity checking
 			if((has_brackets | has_register) && (dat || !in_meta.empty()))
@@ -476,5 +476,5 @@ public:
 		}
 	}
 
-	operator std::vector<uint16>() && { return std::move(memory); }
+	operator std::vector<uint16_t>() && { return std::move(memory); }
 };

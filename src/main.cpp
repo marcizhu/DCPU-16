@@ -4,7 +4,6 @@
 
 #include "dcpu16.h"
 #include "assembler.h"
-#include "hardware.h"
 #include "lem1802.h"
 #include "keyboard.h"
 #include "clock.h"
@@ -26,7 +25,7 @@ int main(int argc, char* argv[])
 		infile.read((char*)Buf, len);
 		infile.close();
 
-		std::vector<uint16> mem = Assembler( {Buf,Buf+len} );
+		std::vector<uint16_t> mem = Assembler({ Buf, Buf + len });
 
 		DCPU16* cpu = new DCPU16(mem);
 		LEM1802* lem = new LEM1802(cpu, atoi(argv[2]));
@@ -47,15 +46,6 @@ int main(int argc, char* argv[])
 	{
 		printf("Usage:\t./dcpu <program file> <delay>\n");
 	}
-
-	/*for(int i = 0; i < 0x20; i++)
-	{
-		if(i % 8 == 0) printf("\n\t%04x: ", i);
-
-		printf("%04X ", mem[i]);
-	}
-
-	puts("");*/
 
 	return 0;
 }
