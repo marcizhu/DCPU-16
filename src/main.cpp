@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <SDL2/SDL.h>
 #include <fstream>
 
 #include "dcpu16.h"
@@ -10,42 +9,36 @@
 
 int main(int argc, char* argv[])
 {
-	if(argc > 2)
-	{
-		std::ifstream infile(argv[1], std::ifstream::binary);
+	if(argc <= 2) return printf("Usage:\t./dcpu <program file> <delay>\n");
 
-		if (!infile.good()) return -1;
+	std::ifstream infile(argv[1], std::ifstream::binary);
 
-		infile.seekg(0, std::ios::end);
-		int len = (int)infile.tellg();
-		infile.seekg(0, std::ios::beg);
+	if (!infile.good()) return -1;
 
-		char* Buf = new char[len];
+	infile.seekg(0, std::ios::end);
+	int len = (int)infile.tellg();
+	infile.seekg(0, std::ios::beg);
 
-		infile.read((char*)Buf, len);
-		infile.close();
+	char* Buf = new char[len];
 
-		std::vector<uint16_t> mem = Assembler({ Buf, Buf + len });
+	infile.read((char*)Buf, len);
+	infile.close();
 
-		DCPU16* cpu = new DCPU16(mem);
-		LEM1802* lem = new LEM1802(cpu, atoi(argv[2]));
-		Keyboard* kb = new Keyboard(cpu);
-		Clock* clock = new Clock(cpu);
+	std::vector<uint16_t> mem = Assembler({ Buf, Buf + len });
 
-		cpu->installHardware(lem);
-		cpu->installHardware(kb);
-		cpu->installHardware(clock);
-		cpu->run();
+	uint16_t delay = (uint16_t)atoi(argv[2]);
 
-		//while(!lem->keepAlive());
+	DCPU16* cpu = new DCPU16(mem);
+	LEM1802* lem = new LEM1802(cpu, delay);
+	Keyboard* kb = new Keyboard(cpu);
+	Clock* clock = new Clock(cpu);
 
-		delete cpu;
-		delete lem;
-	}
-	else
-	{
-		printf("Usage:\t./dcpu <program file> <delay>\n");
-	}
+	cpu->run();
+
+	delete cpu;
+	delete lem;
+	delete kb;
+	delete clock;
 
 	return 0;
 }

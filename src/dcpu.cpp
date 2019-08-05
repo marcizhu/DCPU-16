@@ -146,28 +146,28 @@ void DCPU16::execute(bool skipping)
 					case NBI::IAS: tick(1); reg[IA] = a; break;
 					case NBI::RFI: tick(3); irqQueuing = false; reg[A] = POP; reg[PC] = POP; break;
 					case NBI::IAQ: tick(2); irqQueuing = (a == 0 ? false : true); break;
-					case NBI::HWN: tick(2); a = hardware.size(); break;
+					case NBI::HWN: tick(2); a = (uint16_t)hardware.size(); break;
 					case NBI::HWQ: tick(4); if(a < hardware.size()) hardware[a]->query(); break;
 					case NBI::HWI: tick(4); if(a < hardware.size()) hardware[a]->interrupt(); break;
-					default: std::fprintf(stderr, "Invalid opcode %04X at PC=%X\n", op, reg[PC]); break;
+					default: std::fprintf(stderr, "Invalid opcode %04X at PC=%04X\n", op, reg[PC]); break;
 				}
 				break;
 
 			case INSTR::SET: tick(1); b = a; break;
-			case INSTR::ADD: tick(2); t =  b +  a; b = t; reg[EX] = t >> 16; break;
-			case INSTR::SUB: tick(2); t =  b -  a; b = t; reg[EX] = t >> 16; break;
-			case INSTR::MUL: tick(2); t =  b *  a; b = t; reg[EX] = t >> 16; break;
-			case INSTR::MLI: tick(2); s = sb * sa; b = s; reg[EX] = s >> 16; break;
-			case INSTR::DIV: tick(3); t =  a ? (wb << 16) /  a : 0; b = t >> 16; reg[EX] = t; break;
-			case INSTR::DVI: tick(3); s = sa ? (sb << 16) / sa : 0; b = s >> 16; reg[EX] = s; break;
-			case INSTR::MOD: tick(3); b = ( a ?  b %  a : 0); break;
-			case INSTR::MDI: tick(3); b = (sa ? sb % sa : 0); break;
+			case INSTR::ADD: tick(2); t =  b +  a; b = (uint16_t)t; reg[EX] = (uint16_t)(t >> 16); break;
+			case INSTR::SUB: tick(2); t =  b -  a; b = (uint16_t)t; reg[EX] = (uint16_t)(t >> 16); break;
+			case INSTR::MUL: tick(2); t =  b *  a; b = (uint16_t)t; reg[EX] = (uint16_t)(t >> 16); break;
+			case INSTR::MLI: tick(2); s = sb * sa; b = (uint16_t)s; reg[EX] = (uint16_t)(s >> 16); break;
+			case INSTR::DIV: tick(3); t =  a ? (wb << 16) /  a : 0; b = (uint16_t)(t >> 16); reg[EX] = (uint16_t)t; break;
+			case INSTR::DVI: tick(3); s = sa ? (sb << 16) / sa : 0; b = (uint16_t)(s >> 16); reg[EX] = (uint16_t)s; break;
+			case INSTR::MOD: tick(3); b = (uint16_t)( a ?  b %  a : 0); break;
+			case INSTR::MDI: tick(3); b = (uint16_t)(sa ? sb % sa : 0); break;
 			case INSTR::AND: tick(1); b &= a; break;
 			case INSTR::BOR: tick(1); b |= a; break;
 			case INSTR::XOR: tick(1); b ^= a; break;
-			case INSTR::SHR: tick(1); t = (wb << 16) >> a; b = t >> 16; reg[EX] = t; break;
-			case INSTR::ASR: tick(1); s = (sb << 16) >> a; b = s >> 16; reg[EX] = s; break;
-			case INSTR::SHL: tick(1); t = wb << a; b = t; reg[EX] = t >> 16; break;
+			case INSTR::SHR: tick(1); t = (wb << 16) >> a; b = (uint16_t)(t >> 16); reg[EX] = (uint16_t)t; break;
+			case INSTR::ASR: tick(1); s = (sb << 16) >> a; b = (uint16_t)(s >> 16); reg[EX] = (uint16_t)s; break;
+			case INSTR::SHL: tick(1); t = wb << a; b = (uint16_t)t; reg[EX] = (uint16_t)(t >> 16); break;
 			case INSTR::IFB: tick(2); if(!( b &  a)) execute(true); break;
 			case INSTR::IFC: tick(2); if(   b &  a ) execute(true); break;
 			case INSTR::IFE: tick(2); if(!( b == a)) execute(true); break;
@@ -176,11 +176,11 @@ void DCPU16::execute(bool skipping)
 			case INSTR::IFA: tick(2); if(!(sb > sa)) execute(true); break;
 			case INSTR::IFL: tick(2); if(!( b <  a)) execute(true); break;
 			case INSTR::IFU: tick(2); if(!(sb < sa)) execute(true); break;
-			case INSTR::ADX: tick(3); t = b + a + reg[EX]; b = t; reg[EX] = (t >> 16) != 0 ? 0x0001 : 0x0000; break;
-			case INSTR::SBX: tick(3); t = b - a + reg[EX]; b = t; reg[EX] = (t >> 16); break; // EX should be 0xFFFF only if underflow!
+			case INSTR::ADX: tick(3); t = b + a + reg[EX]; b = (uint16_t)t; reg[EX] = (t >> 16) != 0 ? 0x0001 : 0x0000; break;
+			case INSTR::SBX: tick(3); t = b - a + reg[EX]; b = (uint16_t)t; reg[EX] = (t >> 16); break; // EX should be 0xFFFF only if underflow!
 			case INSTR::STI: tick(2); b = a; reg[I]++; reg[J]++; break;
 			case INSTR::STD: tick(2); b = a; reg[I]--; reg[J]--; break;
-			default: std::fprintf(stderr, "Invalid opcode %04X at PC=%X\n", op, reg[PC]); break;
+			default: std::fprintf(stderr, "Invalid opcode %04X at PC=%04X\n", op, reg[PC]); break;
 		}
 	}
 }

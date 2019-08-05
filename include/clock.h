@@ -4,7 +4,7 @@ class Clock: public Hardware // Generic Clock
 {
 private:
     uint32_t divider;
-    uint32_t counter;
+    uint16_t counter;
     uint32_t cycles;
 
 public:

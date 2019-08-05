@@ -21,22 +21,6 @@ LEM1802::~LEM1802()
 	SDL_Quit();
 }
 
-int LEM1802::keepAlive()
-{
-	SDL_Event event;
-
-	while(SDL_PollEvent(&event))
-	{
-		if(SDL_QUIT == event.type)
-		{
-			return 1;
-			break;
-		}
-	}
-
-	return 0;
-}
-
 void LEM1802::interrupt()
 {
 	switch(cpu->reg[A])
@@ -45,8 +29,8 @@ void LEM1802::interrupt()
 		case 1: fontBase    = cpu->reg[B]; break;
 		case 2: paletteBase = cpu->reg[B]; break;
 		case 3: borderColor = cpu->reg[B] & 0xF; break;
-		case 4: for(int n = 0; n < 256; ++n) { cpu->mem[uint16_t(cpu->reg[B] + n)] = getFontCell(n, true); cpu->tick(1); } break;
-		case 5: for(int n = 0; n <  16; ++n) { cpu->mem[uint16_t(cpu->reg[B] + n)] = getPalette(n,  true); cpu->tick(1); } break;
+		case 4: for(uint16_t n = 0; n < 256; ++n) { cpu->mem[uint16_t(cpu->reg[B] + n)] = getFontCell(n, true); cpu->tick(1); } break;
+		case 5: for(uint16_t n = 0; n <  16; ++n) { cpu->mem[uint16_t(cpu->reg[B] + n)] = getPalette(n,  true); cpu->tick(1); } break;
 	}
 }
 

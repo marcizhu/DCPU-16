@@ -32,8 +32,8 @@ private:
 	uint16_t* mem;
 	uint16_t irqQueue[256];
 	uint8_t irqHead = 0, irqTail = 0;
-	bool irqQueuing = false;
 	std::vector<Hardware*> hardware;
+	bool irqQueuing = false;
 	bool running = true;
 
 	void tick(unsigned int n = 1);

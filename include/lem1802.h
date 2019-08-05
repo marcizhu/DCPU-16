@@ -35,8 +35,6 @@ public:
 	LEM1802(DCPU16* c, uint16_t delay);
 	~LEM1802() override;
 
-	int keepAlive();
-
 	void interrupt() override;
 	void tick() override;
 };
