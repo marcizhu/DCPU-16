@@ -1,7 +1,6 @@
 #pragma once
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_render.h>
+#include <vector>
 
 #include "hardware.h"
 
@@ -9,7 +8,9 @@
 #define SCREEN_HEIGHT 	96
 #define SCALE 			4
 
-//screen hardware
+struct SDL_Window;
+struct SDL_Renderer;
+struct SDL_Texture;
 
 class LEM1802 : public Hardware
 {
@@ -33,7 +34,7 @@ private:
 
 public:
 	LEM1802(DCPU16* c, uint16_t delay);
-	~LEM1802() override;
+	~LEM1802();
 
 	void interrupt() override;
 	void tick() override;

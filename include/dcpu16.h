@@ -1,8 +1,8 @@
 // DCPU-16 v1.7 emulator
 #pragma once
 
-#include <vector>
 #include <cstdio>
+#include <vector>
 
 #define MEM		0x80
 #define IMM		0x40
@@ -50,6 +50,7 @@ private:
 
 public:
 	DCPU16(std::vector<uint16_t> prog);
+	~DCPU16();
 
 	void installHardware(Hardware* hw) { hardware.push_back(hw); }
 

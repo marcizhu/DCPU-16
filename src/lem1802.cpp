@@ -1,5 +1,8 @@
-#include "dcpu16.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_render.h>
+
 #include "lem1802.h"
+#include "dcpu16.h"
 
 LEM1802::LEM1802(DCPU16* c, uint16_t delay) : Hardware(c, 0x7349f615, 0x1802, 0x1c6c8b36), delay(delay)
 {
@@ -38,21 +41,16 @@ void LEM1802::tick()
 {
 	// The screen refreshes at 60 Hz. The CPU ticks at 100 kHz. The ratio is 5000/3.
 	for(this->counter += 3; this->counter >= 5000; this->counter -= 5000)
-	{
 		render(++blink & 32);
-	}
 }
 
 void LEM1802::render(bool blink)
 {
-	Uint8 r, g, b;
 	uint16_t backColor = getPalette(borderColor);
 
-	r = ((backColor >> 8) & 0x0F) * 17; // adjustment
-	g = ((backColor >> 4) & 0x0F) * 17; // adjustment
-	b = ((backColor >> 0) & 0x0F) * 17; // adjustment
-
-	std::fill(pixels.begin(), pixels.end(), 0);
+	Uint8 r = ((backColor >> 8) & 0x0F) * 17; // adjustment
+	Uint8 g = ((backColor >> 4) & 0x0F) * 17; // adjustment
+	Uint8 b = ((backColor >> 0) & 0x0F) * 17; // adjustment
 
 	SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(renderer);
@@ -76,22 +74,17 @@ void LEM1802::render(bool blink)
 			{
 				for(unsigned int xp = 0; xp < 4; ++xp)
 				{
-					uint8_t color = ((font[xp / 2] & (1 << (yp + 8 * ((xp & 1) ^ 1)))) ? fg : bg);
+					const uint8_t color = ((font[xp / 2] & (1 << (yp + 8 * ((xp & 1) ^ 1)))) ? fg : bg);
 
 					const unsigned int _x = x * 4 + xp;
 					const unsigned int _y = y * 8 + yp;
 					const unsigned int offset = (SCREEN_WIDTH * 4 * _y) + _x * 4;
 
-					Uint8 r, g, b;
-					uint16_t col = getPalette(color);
+					const uint16_t col = getPalette(color);
 
-					r = ((col >> 8) & 0x0F) * 17; // adjustment
-					g = ((col >> 4) & 0x0F) * 17; // adjustment
-					b = ((col >> 0) & 0x0F) * 17; // adjustment
-
-					pixels[offset + 0] = b;
-					pixels[offset + 1] = g;
-					pixels[offset + 2] = r;
+					pixels[offset + 0] = Uint8(((col >> 0) & 0x0F) * 17); // Blue
+					pixels[offset + 1] = Uint8(((col >> 4) & 0x0F) * 17); // Green
+					pixels[offset + 2] = Uint8(((col >> 8) & 0x0F) * 17); // Red
 					pixels[offset + 3] = SDL_ALPHA_OPAQUE;
 				}
 			}
@@ -108,7 +101,8 @@ void LEM1802::render(bool blink)
 
 uint16_t LEM1802::getPalette(unsigned int n, bool force) const
 {
-	static const uint16_t palette[16] = { 0x000, 0x00A, 0x0A0, 0x0AA, 0xA00, 0xA0A, 0xAA5, 0xAAA, 0x555, 0x55F, 0x5F5, 0x5FF, 0xF55, 0xF5F, 0xFF5, 0xFFF };
+	static const uint16_t palette[16] =
+		{ 0x000, 0x00A, 0x0A0, 0x0AA, 0xA00, 0xA0A, 0xAA5, 0xAAA, 0x555, 0x55F, 0x5F5, 0x5FF, 0xF55, 0xF5F, 0xFF5, 0xFFF };
 
 	return (force || !paletteBase) ? palette[n] : cpu->mem[(uint16_t)(paletteBase + n)];
 }

@@ -11,12 +11,12 @@ protected:
 	uint32_t id, manufacturer;
 	uint16_t version, irq;
 
-	Hardware(DCPU16* c, uint32_t id, uint16_t ver, uint32_t man) : cpu(c), id(id), manufacturer(man), version(ver), irq(0) { cpu->installHardware(this); }
+	Hardware(DCPU16* c, uint32_t id, uint16_t ver, uint32_t man) : cpu(c), id(id), manufacturer(man), version(ver), irq(0) {}
 
 public:
 	virtual ~Hardware() = default;
-	virtual void interrupt() { }
-	virtual void tick() { }
+	virtual void interrupt() {}
+	virtual void tick() {}
 
 	void query()
 	{

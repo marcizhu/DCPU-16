@@ -1,5 +1,7 @@
 #include <cstdio>
-#include <fstream>
+#include <sys/stat.h>
+#include <string>
+#include <vector>
 
 #include "dcpu16.h"
 #include "assembler.h"
@@ -11,34 +13,28 @@ int main(int argc, char* argv[])
 {
 	if(argc <= 2) return printf("Usage:\t./dcpu <program file> <delay>\n");
 
-	std::ifstream infile(argv[1], std::ifstream::binary);
+	struct stat info;
+	uint64_t size = stat(argv[1], &info) < 0 ? 0 : (uint64_t)info.st_size;
+	std::string buff(size, '\0');
 
-	if (!infile.good()) return -1;
+	FILE* file = fopen(argv[1], "rb");
 
-	infile.seekg(0, std::ios::end);
-	int len = (int)infile.tellg();
-	infile.seekg(0, std::ios::beg);
+	if (!file) return 0;
 
-	char* Buf = new char[len];
+	fread((char*)buff.data(), size, 1, file);
+	fclose(file);
 
-	infile.read((char*)Buf, len);
-	infile.close();
-
-	std::vector<uint16_t> mem = Assembler({ Buf, Buf + len });
+	std::vector<uint16_t> mem = Assembler(buff);
 
 	uint16_t delay = (uint16_t)atoi(argv[2]);
 
 	DCPU16* cpu = new DCPU16(mem);
-	LEM1802* lem = new LEM1802(cpu, delay);
-	Keyboard* kb = new Keyboard(cpu);
-	Clock* clock = new Clock(cpu);
-
+	cpu->installHardware(new LEM1802(cpu, delay));
+	cpu->installHardware(new Keyboard(cpu));
+	cpu->installHardware(new Clock(cpu));
 	cpu->run();
 
 	delete cpu;
-	delete lem;
-	delete kb;
-	delete clock;
 
 	return 0;
 }

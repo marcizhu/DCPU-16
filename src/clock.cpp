@@ -10,6 +10,7 @@ void Clock::interrupt()
         case 2: irq = cpu->reg[B]; break;
     }
 }
+
 void Clock::tick()
 {
     // The CPU ticks at 100 kHz; the Clock at 60 Hz. The ratio is 5000/3.

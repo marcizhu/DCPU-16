@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SDL2/SDL.h>
+
 #include "hardware.h"
 
 class Keyboard : public Hardware

@@ -8,21 +8,21 @@ DCPU16::DCPU16(std::vector<uint16_t> prog)
 {
 	mem = new uint16_t[0x10000];
 	memset(mem, 0, 0x10000);
+	memcpy(mem, prog.data(), prog.size());
+}
 
-	for(unsigned int i = 0; i < prog.size(); i++)
-	{
-		mem[i] = prog[i];
-	}
+DCPU16::~DCPU16()
+{
+	for(const auto* p : hardware)
+		delete p;
 }
 
 void DCPU16::tick(unsigned int n)
 {
 	while(n-- > 0)
 	{
-		for(const auto& p : hardware)
-		{
+		for(auto* p : hardware)
 			p->tick();
-		}
 	}
 }
 
@@ -75,36 +75,7 @@ void DCPU16::run()
 	}
 }
 
-void DCPU16::halt()
-{
-	this->running = false;
-}
-
-void DCPU16::dump()
-{
-	printf("Register dump:\n");
-	printf("\tA: %04x  [%04x]\n", reg[A], mem[reg[A]]);
-	printf("\tB: %04x  [%04x]\n", reg[B], mem[reg[B]]);
-	printf("\tC: %04x  [%04x]\n", reg[C], mem[reg[C]]);
-	printf("\tX: %04x  [%04x]\n", reg[X], mem[reg[X]]);
-	printf("\tY: %04x  [%04x]\n", reg[Y], mem[reg[Y]]);
-	printf("\tZ: %04x  [%04x]\n", reg[Z], mem[reg[Z]]);
-	printf("\tI: %04x  [%04x]\n", reg[I], mem[reg[I]]);
-	printf("\tJ: %04x  [%04x]\n", reg[J], mem[reg[J]]);
-	printf("\tPC: %04x  [%04x]\n", reg[PC], mem[reg[PC]]);
-	printf("\tSP: %04x  [%04x]\n", reg[SP], mem[reg[SP]]);
-	printf("\tEX: %04x  [%04x]\n", reg[EX], mem[reg[EX]]);
-	printf("\tIA: %04x  [%04x]\n\n", reg[IA], mem[reg[IA]]);
-
-
-	printf("Memory dump:");
-	for(int i = 0; i < 0x10000; i++)
-	{
-		if(i % 8 == 0) printf("\n\t%04x: ", i);
-
-		printf("%04X ", mem[i]);
-	}
-}
+void DCPU16::halt() { this->running = false; }
 
 void DCPU16::execute(bool skipping)
 {
